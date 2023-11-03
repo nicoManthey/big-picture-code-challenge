@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  psqldb:
+    image: postgres:13.8
+    restart: always
+    environment:
+      POSTGRES_DB: books_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    depends_on:
+      - psqldb
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: nico.manthey@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: 1234
+      PGADMIN_LISTEN_PORT: 80
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    ports:
+      - "8080:80"
+    links:
+      - "psqldb:erofollowup-server"
+
+  web_access:
+    build: ./web_interface
+    container_name: web_interface_db
+    depends_on:
+      - psqldb
+    restart: always
+    volumes:
+      - web-data:/db_access
+    ports:
+      - "7070:8000"
+
+volumes:
+  db-data:
+  pgadmin-data:
+  web-data:
+

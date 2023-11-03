@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add a Book</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            text-align: center;
+        }
+
+        h1 {
+            background-color: #007BFF;
+            color: white;
+            padding: 20px 0;
+            margin: 0;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        input[type="submit"] {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    
+    <!--Input form for checking / displaying json data from openlibrary.org for a given ISBN-->
+    <h1>Fetch Book Details by ISBN</h1>
+    <form id="isbn-form">
+        <label for="isbn">ISBN:</label>
+        <input type="text" id="isbn" name="isbn" required>
+        <input type="submit" value="Fetch Book Details">
+    </form>
+
+    <!-- This javascript catches the input of the form above and sends it to the /isbn/<isbn>
+    endpoint and fetches its result. If the isbn is invalid, display an alert. If the ISBN
+    is valid, open a new tab and display json data obtained from openlibrary.org -->
+    <script>
+    document.getElementById('isbn-form').addEventListener('submit', function(event) {
+        // Prevent the form from being submitted normally
+        event.preventDefault();
+
+        // Get the ISBN from the form
+        var isbn = document.getElementById('isbn').value;
+
+        // Send a GET request to the /isbn endpoint
+        fetch('/isbn/' + isbn)
+            .then(response => response.json())
+            .then(data => {
+                if (data.valid) {
+                    // The ISBN is valid, display the book details in a new window
+                    var newWindow = window.open("", "_blank");
+                    newWindow.document.write("<pre>" + JSON.stringify(data.book_info, null, 2) + "</pre>");
+                } else {
+                    // The ISBN is invalid, show an alert
+                    alert('Invalid ISBN: ' + data.error);
+                }
+            })
+            .catch(error => {
+                // An error occurred, show an alert
+                alert('An error occurred: ' + error);
+            });
+    });
+    </script>
+
+
+    <!--Input form to save book details by ISBN. This sends a POST request to the /books endpoint. 
+    If ISBN is invalid, display alert. If ISBN is valid, store book in database and display success info. -->
+    <h1>Save Book Details by ISBN</h1>
+    <form id="save-book-form">
+        <label for="save-isbn">ISBN:</label>
+        <input type="text" id="save-isbn" name="isbn" required>
+        <input type="submit" value="Save Book Details">
+    </form>
+
+    <!--JavaScript to handle response from the /books endpoint. If there is an error, display an alert. 
+    If the book was saved successfully, display a success message.-->
+    <script>
+    document.getElementById('save-book-form').addEventListener('submit', function(event) {
+        // Prevent the form from being submitted normally
+        event.preventDefault();
+
+        // Get the ISBN from the form
+        var isbn = document.getElementById('save-isbn').value;
+
+        // Send a POST request to the /books endpoint
+        fetch('/books', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({isbn: isbn})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                // There was an error, show an alert
+                alert('Error: ' + data.error);
+            } else {
+                // The book was saved successfully, show a success message
+                alert('Book saved successfully');
+            }
+        })
+        .catch(error => {
+            // An error occurred, show an alert
+            alert('An error occurred: ' + error);
+        });
+    });
+    </script>
+
+
+    <!--List all books that are stored in the database. Needs to be refreshed to show newly added books.-->
+    <h2>All Books</h2>
+    <table>
+        <tr>
+            <th>ISBN</th>
+            <th>Author</th>
+            <th>Title</th>
+            <th>Summary</th>
+            <th>Cover URL</th>
+        </tr>
+        {% for book in books %}
+        <tr>
+            <td>{{ book.isbn }}</td>
+            <td>{{ book.author }}</td>
+            <td>{{ book.title }}</td>
+            <td>{{ book.summary }}</td>
+            <td><img src="{{ book.cover_url }}" alt="{{ book.title }}"></td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

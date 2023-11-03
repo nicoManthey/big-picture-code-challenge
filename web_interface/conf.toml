@@ -1,0 +1,25 @@
+name = "Database Access (Local)"
+
+# To access the database from the host machine, use the following settings:
+[pgdb]
+name = "books_db"
+host = "localhost"
+user = "postgres"
+password = "1234"
+port = 5432
+
+# Used to setup database and create web_user
+[pgdb_setup]
+name = "books_db"
+host = "psqldb"
+user = "postgres"
+password = "1234"
+port = 5432
+
+# To access the database from the web server, use the following settings
+[pgdb_wu]
+name = "books_db"
+host = "psqldb"
+user = "web_user"
+password = "1234"
+port = 5432
